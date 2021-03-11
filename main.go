@@ -2,11 +2,11 @@ package main
 
 import (
 	"embed"
-	_ "embed"
-	"fmt"
 	"io/fs"
 	"log"
+	"mime"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -22,8 +22,8 @@ type loadedFile struct {
 	mime string
 }
 
-func loadFilesFromEmbeddedFs() (map[string][]byte, error) {
-	var files = make(map[string][]byte)
+func loadFilesFromEmbeddedFs() (map[string]loadedFile, error) {
+	var files = make(map[string]loadedFile)
 
 	err := fs.WalkDir(embeddedFs, dirPrefix, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -38,8 +38,11 @@ func loadFilesFromEmbeddedFs() (map[string][]byte, error) {
 			return err
 		}
 		path = strings.TrimLeft(path, dirPrefix)
-		files[path] = file
-		fmt.Printf("Loading file from embeded filessystem. file %s\n", path)
+		files[path] = loadedFile{
+			file: file,
+			mime: mime.TypeByExtension(filepath.Ext(path)),
+		}
+		log.Printf("Loading file from embeded filessystem. file %s\n", path)
 		return nil
 	})
 
@@ -65,14 +68,14 @@ func main() {
 	srv := &http.Server{
 		Addr: ":8080",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			file, exists := files[req.URL.Path]
+			loadedFile, exists := files[req.URL.Path]
 			if !exists {
-				file = indexFile
+				loadedFile = indexFile
 			}
-
-			_, err = w.Write(file)
+			w.Header().Add("Content-Type", loadedFile.mime)
+			_, err = w.Write(loadedFile.file)
 			if err != nil {
-				log.Printf("Could not send file: {%s} to client", req.URL.Path)
+				log.Printf("Could not send loadedFile: {%s} to client", req.URL.Path)
 			}
 		}),
 		ReadTimeout:  5 * time.Second,
@@ -80,5 +83,11 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	log.Println(srv.ListenAndServe())
+	log.Println("Starting server on port: 8080")
+	err = srv.ListenAndServe()
+	if err != nil {
+		log.Fatalln("Could not start server. err: ", err)
+	}
+
+	log.Println("Stopping Server")
 }
