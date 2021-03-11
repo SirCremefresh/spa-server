@@ -1,6 +1,5 @@
 # Simple spa-server
 
-```donatowolfisberg/spa-server```
 [![Docker Build](https://img.shields.io/docker/cloud/build/donatowolfisberg/spa-server)](https://hub.docker.com/r/donatowolfisberg/spa-server)
 [![Image Version](https://img.shields.io/docker/v/donatowolfisberg/spa-server?sort=semver)](https://hub.docker.com/r/donatowolfisberg/spa-server)
 [![Image Size](https://img.shields.io/docker/image-size/donatowolfisberg/spa-server?sort=date)](https://hub.docker.com/r/donatowolfisberg/spa-server)
