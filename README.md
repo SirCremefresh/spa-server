@@ -1,15 +1,10 @@
 # Simple spa-server
 
-```donatowolfisberg/spa-server-builder```
-[![Docker Build](https://img.shields.io/docker/cloud/build/donatowolfisberg/spa-server-builder)](https://hub.docker.com/r/donatowolfisberg/spa-server-builder)
-[![Image Version](https://img.shields.io/docker/v/donatowolfisberg/spa-server-builder?sort=semver)](https://hub.docker.com/r/donatowolfisberg/spa-server-builder)
-[![Image Size](https://img.shields.io/docker/image-size/donatowolfisberg/spa-server-builder?sort=date)](https://hub.docker.com/r/donatowolfisberg/spa-server-builder)
-[![Docker Pulls](https://img.shields.io/docker/pulls/donatowolfisberg/spa-server-builder)](https://hub.docker.com/r/donatowolfisberg/spa-server-builder)  
-```donatowolfisberg/spa-server-runneer```
-[![Docker Build](https://img.shields.io/docker/cloud/build/donatowolfisberg/spa-server-runner)](https://hub.docker.com/r/donatowolfisberg/spa-server-runner)
-[![Image Version](https://img.shields.io/docker/v/donatowolfisberg/spa-server-runner?sort=semver)](https://hub.docker.com/r/donatowolfisberg/spa-server-runner)
-[![Image Size](https://img.shields.io/docker/image-size/donatowolfisberg/spa-server-runner?sort=date)](https://hub.docker.com/r/donatowolfisberg/spa-server-runner)
-[![Docker Pulls](https://img.shields.io/docker/pulls/donatowolfisberg/spa-server-runner)](https://hub.docker.com/r/donatowolfisberg/spa-server-runner)
+```donatowolfisberg/spa-server```
+[![Docker Build](https://img.shields.io/docker/cloud/build/donatowolfisberg/spa-server)](https://hub.docker.com/r/donatowolfisberg/spa-server)
+[![Image Version](https://img.shields.io/docker/v/donatowolfisberg/spa-server?sort=semver)](https://hub.docker.com/r/donatowolfisberg/spa-server)
+[![Image Size](https://img.shields.io/docker/image-size/donatowolfisberg/spa-server?sort=date)](https://hub.docker.com/r/donatowolfisberg/spa-server)
+[![Docker Pulls](https://img.shields.io/docker/pulls/donatowolfisberg/spa-server)](https://hub.docker.com/r/donatowolfisberg/spa-server)
 
 Who doesn't know it? You create a small backend with a single-page-application frontend and want to deploy it. Then you
 create a nginx dockerfile and copy the nginx config you looked up 2 years ago from one of your other projects. This
@@ -27,26 +22,25 @@ this [repository](https://github.com/SirCremefresh/spa-server).
 
 ## Usage
 
-Create a "Dockerfile" where you start with the image "donatowolfisberg/spa-server-builder". There you copy your
-application to the public folder. After you run the "build.sh" script. This bundles your frontend with the server into a
-single binary. In the next build-step start from "donatowolfisberg/spa-server-runner" and copy your binary into the root
-path.
+Create a "Dockerfile" where you start with the image "donatowolfisberg/spa-server". There you copy your application to
+the public folder. After you run the "build.sh" script. This bundles your frontend with the server into a single binary.
+In the next build-step start from "scratch" and copy your binary into the root path. At last, you need to add
+CMD ["server"] to get it started.
 
 ```dockerfile
-FROM donatowolfisberg/spa-server-builder as builder
+FROM donatowolfisberg/spa-server as builder
 
 COPY public public
 RUN ./build.sh
 
-FROM donatowolfisberg/spa-server-runner
+FROM scratch
 
 COPY --from=builder /app/server /server
-
+CMD ["/server"]
 ```
 
 ## Build local
 
 ```shell
-docker build --file builder.Dockerfile . -t spa-server-builder 
-docker build --file runner.Dockerfile . -t spa-server-runner   
+docker build . -t spa-server 
 ```
