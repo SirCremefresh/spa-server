@@ -1,8 +1,8 @@
-FROM spa-server-builder as builder
+FROM donatowolfisberg/spa-server-builder as builder
 
 COPY public public
 RUN ./build.sh
 
-FROM spa-server-runner
+FROM donatowolfisberg/spa-server-runner
 
 COPY --from=builder /app/server /server
