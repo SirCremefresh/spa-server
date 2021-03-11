@@ -14,6 +14,9 @@ To solve this I created a small simple web server that does html5 routing. It do
 you don't use. It is written in golang and utilizes the embed feature so that there is just a single binary in your
 final stage docker image.
 
+For example the empty image size of nginx is ~130MB in contrast the final build of the example in this repo is just
+6.18MB.
+
 ## Example
 
 There is an example setup in the [./example](https://github.com/SirCremefresh/spa-server/example) folder in
