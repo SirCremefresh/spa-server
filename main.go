@@ -2,11 +2,14 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"log"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -20,6 +23,26 @@ const indexFile = "/index.html"
 type loadedFile struct {
 	file []byte
 	mime string
+}
+
+func getenvString(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return fallback
+	}
+	return value
+}
+
+func getenvUint(key string, fallback uint64) uint64 {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return fallback
+	}
+	valueUint, err := strconv.ParseUint(value, 10, 64)
+	if err != nil {
+		log.Fatalf("Could not convert value from env to uint64. key: %s, value: %s err: %v", key, value, err)
+	}
+	return valueUint
 }
 
 func loadFilesFromEmbeddedFs() (map[string]loadedFile, error) {
@@ -54,10 +77,17 @@ func loadFilesFromEmbeddedFs() (map[string]loadedFile, error) {
 }
 
 func main() {
+	port := getenvString("PORT", "8080")
+	addr := getenvString("ADDRESS", "0.0.0.0")
+
+	readTimeout := getenvUint("READ_TIMEOUT_SECONDS", 5)
+	writeTimeout := getenvUint("WRITE_TIMEOUT_SECONDS", 10)
+	idleTimeout := getenvUint("IDLE_TIMEOUT_SECONDS", 120)
+
 	files, err := loadFilesFromEmbeddedFs()
 
 	if err != nil {
-		log.Fatalln("Could not load files from embedded filesystem. err: ", err)
+		log.Fatalf("Could not load files from embedded filesystem. err: %v", err)
 	}
 
 	indexFile, indexFileFound := files[indexFile]
@@ -66,7 +96,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr: ":8080",
+		Addr: fmt.Sprintf("%s:%s", addr, port),
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			loadedFile, exists := files[req.URL.Path]
 			if !exists {
@@ -75,18 +105,18 @@ func main() {
 			w.Header().Add("Content-Type", loadedFile.mime)
 			_, err = w.Write(loadedFile.file)
 			if err != nil {
-				log.Printf("Could not send loadedFile: {%s} to client", req.URL.Path)
+				log.Printf("Could not send loadedFile to client. file: %s", req.URL.Path)
 			}
 		}),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  time.Duration(readTimeout) * time.Second,
+		WriteTimeout: time.Duration(writeTimeout) * time.Second,
+		IdleTimeout:  time.Duration(idleTimeout) * time.Second,
 	}
 
-	log.Println("Starting server on port: 8080")
+	log.Printf("Starting server on Addr: %s:%s", addr, port)
 	err = srv.ListenAndServe()
 	if err != nil {
-		log.Fatalln("Could not start server. err: ", err)
+		log.Fatalf("Could not start server. err: %v", err)
 	}
 
 	log.Println("Stopping Server")

@@ -41,6 +41,18 @@ COPY --from=builder /app/server /server
 CMD ["/server"]
 ```
 
+## Options
+The following options can be configured through environment variables.
+
+| Env Name              | Default  | 
+| --------------------- | -------- | 
+| PORT                  | 8080     | 
+| ADDRESS               | 0.0.0.0  | 
+| READ_TIMEOUT_SECONDS  | 5        | 
+| WRITE_TIMEOUT_SECONDS | 10       |
+| IDLE_TIMEOUT_SECONDS  | 120      |
+
+
 ## Build local
 
 ```shell
