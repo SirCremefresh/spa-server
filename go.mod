@@ -1,1 +1,3 @@
-module "spa-server"
+module spa-server
+
+go 1.16
