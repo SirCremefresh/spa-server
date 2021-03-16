@@ -5,7 +5,7 @@
 [![Image Size](https://img.shields.io/docker/image-size/donatowolfisberg/spa-server?sort=date)](https://hub.docker.com/r/donatowolfisberg/spa-server)
 [![Docker Pulls](https://img.shields.io/docker/pulls/donatowolfisberg/spa-server)](https://hub.docker.com/r/donatowolfisberg/spa-server)
 
-Who doesn't know it? You create a small backend with a single-page-application frontend and want to deploy it. Then you
+We have all been there. You create a small backend with a single-page-application frontend and want to deploy it. Then you
 create a nginx dockerfile and copy the nginx config you looked up 2 years ago from one of your other projects. This
 without really knowing much about it and besides having to run full-fledged nginx server running for really no good
 reason.
@@ -13,6 +13,8 @@ reason.
 To solve this I created a small simple web server that does html5 routing. It does not come with the 99 features that
 you don't use. It is written in golang and utilizes the embed feature so that there is just a single binary in your
 final stage docker image.
+
+It will send you the file if it finds it in the else it will send you the index.html file. This behavior is useful if you want to do client-side routing.
 
 For example the empty image size of nginx is ~130MB in contrast the final build of the example in this repo is just
 6.18MB.
