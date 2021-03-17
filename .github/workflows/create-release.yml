@@ -11,7 +11,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Release
         uses: softprops/action-gh-release@v1
+        with:
+          body: | 
+            Docker image: ```docker pull donatowolfisberg/spa-server:${{ steps.get_version.outputs.VERSION }}```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
