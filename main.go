@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"io/fs"
@@ -18,7 +19,8 @@ import (
 var embeddedFs embed.FS
 
 const dirPrefix = "public"
-const indexFile = "/index.html"
+const indexFileName = "/index.html"
+const configFileName = "/config.json"
 
 type loadedFile struct {
 	file []byte
@@ -61,6 +63,14 @@ func loadFilesFromEmbeddedFs() (map[string]loadedFile, error) {
 			return err
 		}
 		path = strings.TrimLeft(path, dirPrefix)
+		// apply base href correction
+		if path == indexFileName {
+			file = bytes.Replace(
+				file,
+				[]byte("<base href=\"/\""),
+				[]byte(fmt.Sprint("<base href=\"", getenvString("BASE_HREF", "/"), "\"")),
+				-1)
+		}
 		files[path] = loadedFile{
 			file: file,
 			mime: mime.TypeByExtension(filepath.Ext(path)),
@@ -68,6 +78,11 @@ func loadFilesFromEmbeddedFs() (map[string]loadedFile, error) {
 		log.Printf("Loading file from embeded filessystem. file %s\n", path)
 		return nil
 	})
+
+	files[configFileName] = loadedFile{
+		file: []byte(getenvString("CONFIG_JSON", "{}")),
+		mime: mime.TypeByExtension(filepath.Ext(configFileName)),
+	}
 
 	if err != nil {
 		return nil, err
@@ -90,7 +105,7 @@ func main() {
 		log.Fatalf("Could not load files from embedded filesystem. err: %v", err)
 	}
 
-	indexFile, indexFileFound := files[indexFile]
+	indexFile, indexFileFound := files[indexFileName]
 	if !indexFileFound {
 		log.Fatalln("Could not find index.html")
 	}
@@ -103,6 +118,15 @@ func main() {
 				loadedFile = indexFile
 			}
 			w.Header().Add("Content-Type", loadedFile.mime)
+			switch req.URL.Path {
+			case indexFileName:
+				fallthrough
+			case configFileName:
+				w.Header().Add("Cache-Control", "public, max-age: 60") // refresh every 1 minute to ensure fresh-ness
+			default:
+				w.Header().Add("Cache-Control", "public, max-age: 604800, immutable")
+			}
+
 			_, err = w.Write(loadedFile.file)
 			if err != nil {
 				log.Printf("Could not send loadedFile to client. file: %s", req.URL.Path)
