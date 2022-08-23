@@ -53,8 +53,13 @@ The following options can be configured through environment variables.
 | READ_TIMEOUT_SECONDS  | 5        | 
 | WRITE_TIMEOUT_SECONDS | 10       |
 | IDLE_TIMEOUT_SECONDS  | 120      |
+| BASE_HREF             | /        |
+| CONFIG_JSON           | {}       |
 
+* `BASE_HREF` is used to replace the `href` content in the `index.html`'s string `<base href="/"`, where the original string must match exactly the one mentioned here
+* `CONFIG_JSON` must be json object that will be provided as the response for the request path `/config.json`
 
+The `Cache-Control` is a one minute validity for `/index.html` and `/config.json`, and immutable for the rest of the responses.
 ## Build local
 
 ```shell
