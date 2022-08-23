@@ -71,9 +71,18 @@ func loadFilesFromEmbeddedFs() (map[string]loadedFile, error) {
 				[]byte(fmt.Sprint("<base href=\"", getenvString("BASE_HREF", "/"), "\"")),
 				-1)
 		}
+		mimeType := "application/unknown"
+		switch ext := filepath.Ext(path); ext {
+		case ".woff":
+			mimeType = "font/woff"
+		case ".woff2":
+			mimeType = "font/woff2"
+		default:
+			mimeType = mime.TypeByExtension(filepath.Ext(path))
+		}
 		files[path] = loadedFile{
 			file: file,
-			mime: mime.TypeByExtension(filepath.Ext(path)),
+			mime: mimeType,
 		}
 		log.Printf("Loading file from embeded filessystem. file %s\n", path)
 		return nil
